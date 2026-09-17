@@ -1,0 +1,6 @@
+services:
+  floricode:
+    build: .
+    ports:
+      - "8081:8080"
+    restart: unless-stopped

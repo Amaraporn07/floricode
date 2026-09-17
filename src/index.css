@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background: #fff8f0;
+  color: #4a3f35;
+  font-family: 'Prompt', sans-serif;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ffbe96 #fff6f0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #fff6f0;
+}
+::-webkit-scrollbar-thumb {
+  background: #ffbe96;
+  border-radius: 999px;
+}
+
+/* Wrapping-paper textures, drawn with CSS so no external image assets are needed */
+.paper-craft {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+    radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 9px 9px, 13px 13px;
+  background-position: 0 0, 4px 6px;
+}
+
+.paper-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 2.5px, transparent 2.5px);
+  background-size: 16px 16px;
+}
+
+.paper-stripe {
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.35) 0px,
+    rgba(255, 255, 255, 0.35) 6px,
+    transparent 6px,
+    transparent 16px
+  );
+}
+
+.paper-plain {
+  background-image: none;
+}
+
+.paper-translucent {
+  opacity: 0.6;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+}
