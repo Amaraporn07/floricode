@@ -17,9 +17,9 @@ const SIZE_PX: Record<RibbonSizeId, number> = { small: 34, medium: 46, large: 60
 const BAND_HEIGHT: Record<RibbonSizeId, string> = { small: '7%', medium: '10%', large: '13%' }
 
 const POSITION_STYLE: Record<RibbonPositionId, { top: string; left: string; rotate: string }> = {
-  neck: { top: '52%', left: '50%', rotate: '0deg' },
-  middle: { top: '68%', left: '50%', rotate: '0deg' },
-  side: { top: '58%', left: '38%', rotate: '-8deg' },
+  neck: { top: '63%', left: '50%', rotate: '0deg' },
+  middle: { top: '76%', left: '50%', rotate: '0deg' },
+  side: { top: '68%', left: '38%', rotate: '-8deg' },
 }
 
 export default function RibbonBow({ color, fabric, position, size }: RibbonBowProps) {

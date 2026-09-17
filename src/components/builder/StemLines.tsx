@@ -6,20 +6,28 @@ interface StemLinesProps {
 }
 
 const NECK_X = 50
-const NECK_Y = 55
-
-// 'spike' and 'branch' flowers (lavender, hyacinth, eucalyptus) already draw
-// their own stem inside the flower artwork itself, so adding this external
-// stem on top of theirs would just draw a second, differently-angled stem
-// that visibly doesn't line up with the first.
-const HAS_OWN_STEM = new Set(['spike', 'branch'])
+const NECK_Y = 63
 
 // How far below the flower's geometric center (in its own 0-100 local viewBox
 // units, before scale) each shape's artwork actually visually "sits" — most
 // shapes are drawn radially symmetric around the center so 0 is correct, but
-// the tulip cup is drawn lower in its box, so anchoring at dead-center would
-// leave a visible gap once the flower is rotated away from its default angle.
-const LOCAL_BASE_OFFSET: Partial<Record<FlowerShape, number>> = { tulip: 18, orchid: 24 }
+// a few need a nudge:
+// - tulip/orchid: the cup/lip is drawn lower in the box, so anchoring dead
+//   center would leave a visible gap once the flower is rotated.
+// - spike/hyacinthSpike/branch/daisySpray already draw their own stem down to
+//   near the bottom of their box; picking up the external connector right at
+//   that point (instead of at the flower's center) continues their stem
+//   seamlessly instead of drawing a second, differently-angled one through
+//   the flower head, while still reaching the shared neck point so the
+//   flower doesn't look like it's floating apart from the rest of the bouquet.
+const LOCAL_BASE_OFFSET: Partial<Record<FlowerShape, number>> = {
+  tulip: 18,
+  orchid: 24,
+  spike: 42,
+  hyacinthSpike: 42,
+  branch: 45,
+  daisySpray: 45,
+}
 
 const FLOWER_BOX_PX = 72 // PlacedFlowerItem's fixed on-screen size, pre-scale
 // Approximate canvas pixel size (matches the `max-w-md` / aspect-[4/5] canvas
@@ -32,7 +40,6 @@ export default function StemLines({ items }: StemLinesProps) {
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
       {items.map((p) => {
         const flower = getFlowerById(p.flowerId)
-        if (flower && HAS_OWN_STEM.has(flower.shape)) return null
 
         // Anchored at the flower's own center (p.x, p.y), optionally nudged by
         // a shape-specific local offset that's rotated along with the flower —

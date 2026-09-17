@@ -177,24 +177,85 @@ function MarigoldPetals({ petalColor }: { petalColor: string }) {
   )
 }
 
+// Lavender: a slender, sparse spike — one or two small elongated florets per
+// row, tightly hugging a thin stem. Kept deliberately narrow/wand-like so it
+// reads distinctly different from hyacinth's dense, fat cone below.
 function SpikeCluster({ petalColor }: { petalColor: string }) {
+  const rows = 8
+  const items: JSX.Element[] = []
+  for (let row = 0; row < rows; row++) {
+    const y = 12 + row * 7.5
+    const perRow = row < 2 ? 1 : 2
+    const spread = 4.5
+    for (let i = 0; i < perRow; i++) {
+      const x = 50 + (perRow === 1 ? 0 : (i - 0.5) * spread)
+      items.push(<ellipse key={`${row}-${i}`} cx={x} cy={y} rx={3.6} ry={5.5} fill={petalColor} stroke={OUTLINE} strokeWidth="0.6" />)
+    }
+  }
+  return (
+    <>
+      <line x1="50" y1="12" x2="50" y2="92" stroke="#7FA06A" strokeWidth="1.8" />
+      {items}
+    </>
+  )
+}
+
+// Hyacinth: many small bell florets packed densely into a fat, widening
+// cone — the opposite silhouette from lavender's thin wand, which is what
+// keeps the two from looking like the same flower in a different color.
+const HYACINTH_FLORET = 'M0,0 C -4.5,-1.5 -5.5,2.5 -3,5 C -1.5,6.5 1.5,6.5 3,5 C 5.5,2.5 4.5,-1.5 0,0 Z'
+
+function HyacinthSpike({ petalColor, centerColor }: { petalColor: string; centerColor: string }) {
   const rows = 6
   const items: JSX.Element[] = []
   for (let row = 0; row < rows; row++) {
-    const y = 18 + row * 8
-    const spread = 6 + row * 2.6
-    const perRow = 2 + Math.floor(row / 2)
+    const t = row / (rows - 1)
+    const y = 14 + row * 8.5
+    const width = 8 + t * 24
+    const perRow = 3 + row
     for (let i = 0; i < perRow; i++) {
-      const x = 50 + (i - (perRow - 1) / 2) * spread * 0.9
+      const x = 50 + (i - (perRow - 1) / 2) * (width / perRow)
+      const jitter = (pseudoRandom(row * 10 + i) - 0.5) * 2
       items.push(
-        <ellipse key={`${row}-${i}`} cx={x} cy={y} rx={6} ry={7.5} fill={petalColor} stroke={OUTLINE} strokeWidth="0.8" />,
+        <g key={`${row}-${i}`} transform={`translate(${x + jitter} ${y})`}>
+          <path d={HYACINTH_FLORET} fill={petalColor} stroke={OUTLINE} strokeWidth="0.5" />
+          <circle r="0.9" fill={centerColor} />
+        </g>,
       )
     }
   }
   return (
     <>
-      <line x1="50" y1="18" x2="50" y2="92" stroke="#7FA06A" strokeWidth="3" />
+      <line x1="50" y1="14" x2="50" y2="92" stroke="#7FA06A" strokeWidth="2.6" />
       {items}
+    </>
+  )
+}
+
+// A short spray of 2-3 small daisy blooms on their own thin stems, rather
+// than one large flower — closer to how daisies actually grow in a cluster,
+// and each bloom reads as clearly smaller than a standalone daisy.
+function DaisySpray({ petalColor, centerColor }: { petalColor: string; centerColor: string }) {
+  const heads = [
+    { x: 50, y: 16, scale: 1, stem: 'M50 95 C 49 72, 50 45, 50 22' },
+    { x: 30, y: 42, scale: 0.75, stem: 'M50 95 C 40 82, 31 62, 30 48' },
+    { x: 70, y: 48, scale: 0.68, stem: 'M50 95 C 60 84, 69 66, 70 54' },
+  ]
+  return (
+    <>
+      {heads.map((h, i) => (
+        <path key={`stem-${i}`} d={h.stem} fill="none" stroke="#7FA06A" strokeWidth={i === 0 ? 2 : 1.5} />
+      ))}
+      {heads.map((h, i) => (
+        <g key={`head-${i}`} transform={`translate(${h.x} ${h.y}) scale(${h.scale})`}>
+          {Array.from({ length: 10 }, (_, p) => (
+            <g key={p} transform={`rotate(${(360 / 10) * p})`}>
+              <ellipse cx="0" cy="-10.5" rx="3" ry="8.5" fill={petalColor} stroke={OUTLINE} strokeWidth="0.6" />
+            </g>
+          ))}
+          <circle r="4.2" fill={centerColor} stroke={OUTLINE} strokeWidth="0.6" />
+        </g>
+      ))}
     </>
   )
 }
@@ -251,7 +312,7 @@ function Branch({ petalColor }: { petalColor: string }) {
   )
 }
 
-const NO_GENERIC_CENTER = new Set(['tulip', 'spike', 'cluster', 'branch', 'orchid'])
+const NO_GENERIC_CENTER = new Set(['tulip', 'spike', 'hyacinthSpike', 'cluster', 'branch', 'orchid', 'daisySpray'])
 
 /**
  * Generates a cute, minimal 2D-cartoon flower illustration entirely from SVG
@@ -275,6 +336,8 @@ export default function FlowerSVG({ shape, petalColor, centerColor, petalCount, 
       {shape === 'carnation' && <CarnationPetals petalColor={petalColor} count={petalCount ?? 21} />}
       {shape === 'marigold' && <MarigoldPetals petalColor={petalColor} />}
       {shape === 'spike' && <SpikeCluster petalColor={petalColor} />}
+      {shape === 'hyacinthSpike' && <HyacinthSpike petalColor={petalColor} centerColor={centerColor} />}
+      {shape === 'daisySpray' && <DaisySpray petalColor={petalColor} centerColor={centerColor} />}
       {shape === 'cluster' && <ClusterBloom petalColor={petalColor} count={petalCount ?? 16} />}
       {shape === 'branch' && <Branch petalColor={petalColor} />}
 

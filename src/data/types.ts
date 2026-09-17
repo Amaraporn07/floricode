@@ -37,6 +37,8 @@ export type FlowerShape =
   | 'orchid'
   | 'carnation'
   | 'marigold'
+  | 'hyacinthSpike'
+  | 'daisySpray'
 
 export type MoodTone = 'warm' | 'pastel' | 'vibrant' | 'earthy'
 

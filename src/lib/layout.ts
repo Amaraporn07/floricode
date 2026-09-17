@@ -25,7 +25,7 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
   if (style === 'compact') {
     // Concentric rings packed into a tight circle.
     const centerX = 50
-    const centerY = 30
+    const centerY = 21
     let placed = 0
     let ring = 0
     while (placed < count) {
@@ -53,7 +53,7 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
       const t = count === 1 ? 0.5 : i / (count - 1)
       positions.push({
         x: 20 + t * 60,
-        y: 42 - Math.sin(t * Math.PI) * 30,
+        y: 33 - Math.sin(t * Math.PI) * 28,
         rotation: (t - 0.5) * 50,
         scale: 0.85 + Math.sin(t * Math.PI) * 0.3,
       })
@@ -65,7 +65,7 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
   for (let i = 0; i < count; i++) {
     positions.push({
       x: 22 + seeded(i, 2) * 56,
-      y: 10 + seeded(i, 3) * 42,
+      y: 4 + seeded(i, 3) * 38,
       rotation: (seeded(i, 4) - 0.5) * 60,
       scale: 0.8 + seeded(i, 5) * 0.5,
     })
