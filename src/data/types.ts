@@ -24,7 +24,19 @@ export type Occasion =
   | 'thankYou'
   | 'everyday'
 
-export type FlowerShape = 'rose' | 'tulip' | 'daisy' | 'mum' | 'lily' | 'spike' | 'cluster' | 'branch'
+export type FlowerShape =
+  | 'rose'
+  | 'tulip'
+  | 'daisy'
+  | 'mum'
+  | 'lily'
+  | 'spike'
+  | 'cluster'
+  | 'branch'
+  | 'sakura'
+  | 'orchid'
+  | 'carnation'
+  | 'marigold'
 
 export type MoodTone = 'warm' | 'pastel' | 'vibrant' | 'earthy'
 

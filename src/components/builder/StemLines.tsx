@@ -19,7 +19,7 @@ const HAS_OWN_STEM = new Set(['spike', 'branch'])
 // shapes are drawn radially symmetric around the center so 0 is correct, but
 // the tulip cup is drawn lower in its box, so anchoring at dead-center would
 // leave a visible gap once the flower is rotated away from its default angle.
-const LOCAL_BASE_OFFSET: Partial<Record<FlowerShape, number>> = { tulip: 12 }
+const LOCAL_BASE_OFFSET: Partial<Record<FlowerShape, number>> = { tulip: 18, orchid: 24 }
 
 const FLOWER_BOX_PX = 72 // PlacedFlowerItem's fixed on-screen size, pre-scale
 // Approximate canvas pixel size (matches the `max-w-md` / aspect-[4/5] canvas
