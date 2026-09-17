@@ -9,8 +9,23 @@ interface SelectedFlowerControlsProps {
   onRemove: () => void
 }
 
+const MIN_STEM = 0.25
+const MAX_STEM = 2.3
+
 export default function SelectedFlowerControls({ item, onChange, onRemove }: SelectedFlowerControlsProps) {
   const flower = getFlowerById(item.flowerId)
+
+  // The stem always runs straight from the flower's position to the neck
+  // point at the origin, so its length is just that vector's length —
+  // "trimming" it means rescaling x/y/z together along the same direction,
+  // which also naturally pulls the flower down and inward as it shortens,
+  // the way a real cut stem nestles closer to the rest of the bunch.
+  const stemLength = Math.sqrt(item.x ** 2 + item.y ** 2 + item.z ** 2) || 0.01
+
+  const handleStemLength = (nextLength: number) => {
+    const factor = nextLength / stemLength
+    onChange({ x: item.x * factor, y: item.y * factor, z: item.z * factor })
+  }
 
   return (
     <PanelSection title={`ปรับแต่ง: ${flower?.nameTh ?? ''}`}>
@@ -33,7 +48,23 @@ export default function SelectedFlowerControls({ item, onChange, onRemove }: Sel
 
         <div>
           <div className="mb-1 flex justify-between font-body text-xs text-ink/60">
-            <span>องศาการหมุน</span>
+            <span>ความยาวก้าน (ตัดก้าน)</span>
+            <span>{Math.round((stemLength / MAX_STEM) * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min={MIN_STEM}
+            max={MAX_STEM}
+            step={0.02}
+            value={stemLength}
+            onChange={(e) => handleStemLength(Number(e.target.value))}
+            className="w-full accent-peach-400"
+          />
+        </div>
+
+        <div>
+          <div className="mb-1 flex justify-between font-body text-xs text-ink/60">
+            <span>หันไปทาง (รอบตัว)</span>
             <span>{Math.round(item.rotationY)}°</span>
           </div>
           <input
@@ -43,6 +74,22 @@ export default function SelectedFlowerControls({ item, onChange, onRemove }: Sel
             step={1}
             value={item.rotationY}
             onChange={(e) => onChange({ rotationY: Number(e.target.value) })}
+            className="w-full accent-peach-400"
+          />
+        </div>
+
+        <div>
+          <div className="mb-1 flex justify-between font-body text-xs text-ink/60">
+            <span>มุมเอียงของดอก</span>
+            <span>{Math.round(item.tilt)}°</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={70}
+            step={1}
+            value={item.tilt}
+            onChange={(e) => onChange({ tilt: Number(e.target.value) })}
             className="w-full accent-peach-400"
           />
         </div>

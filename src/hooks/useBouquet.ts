@@ -77,6 +77,7 @@ export function useBouquet(initial?: BouquetState) {
         y: pos.y,
         z: pos.z,
         rotationY: pos.rotationY,
+        tilt: pos.tilt,
         scale: pos.scale,
       }
       return { ...s, placed: [...s.placed, placed] }
@@ -102,7 +103,15 @@ export function useBouquet(initial?: BouquetState) {
       return {
         ...s,
         style: useStyle,
-        placed: s.placed.map((p, i) => ({ ...p, x: layout[i].x, y: layout[i].y, z: layout[i].z, rotationY: layout[i].rotationY, scale: layout[i].scale })),
+        placed: s.placed.map((p, i) => ({
+          ...p,
+          x: layout[i].x,
+          y: layout[i].y,
+          z: layout[i].z,
+          rotationY: layout[i].rotationY,
+          tilt: layout[i].tilt,
+          scale: layout[i].scale,
+        })),
       }
     })
   }, [])
@@ -162,6 +171,7 @@ export function useBouquet(initial?: BouquetState) {
           y: pos.y,
           z: pos.z,
           rotationY: pos.rotationY,
+          tilt: pos.tilt,
           scale: pos.scale,
         }
         return { ...s, placed: [...s.placed, placed] }

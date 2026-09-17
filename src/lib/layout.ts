@@ -5,6 +5,7 @@ export interface AutoPosition {
   y: number
   z: number
   rotationY: number
+  tilt: number
   scale: number
 }
 
@@ -21,9 +22,10 @@ const HEAD_SPAN = 1.7
 const GOLDEN_ANGLE = (137.508 * Math.PI) / 180
 
 /**
- * Computes default 3D (x, y, z, rotationY, scale) for `count` flower heads
- * above the bouquet's neck point, based on the chosen arrangement style.
- * Manual dragging afterwards simply overrides these.
+ * Computes default 3D (x, y, z, rotationY, tilt, scale) for `count` flower
+ * heads above the bouquet's neck point, based on the chosen arrangement
+ * style. Manual dragging/tilting/stem-trimming afterwards simply overrides
+ * these starting values.
  */
 export function computeAutoLayout(count: number, style: ArrangementStyleId): AutoPosition[] {
   if (count === 0) return []
@@ -33,6 +35,8 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
   if (style === 'compact') {
     // Phyllotaxis (sunflower-spiral) spacing packed into a dome — evenly
     // fills a tight rounded cluster the way a hand-tied bouquet head does.
+    // Outer flowers lean outward a little, like real stems fanning from a
+    // tied bunch, instead of every head standing bolt upright.
     const maxRadius = 0.62
     for (let i = 0; i < count; i++) {
       const r = Math.sqrt((i + 0.5) / count) * maxRadius
@@ -43,6 +47,7 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
         z: r * Math.sin(theta),
         y: BASE_Y + HEAD_SPAN * 0.72 * (1 - t * t * 0.7),
         rotationY: (theta * 180) / Math.PI,
+        tilt: t * 22,
         scale: 1 - t * 0.18,
       })
     }
@@ -51,7 +56,8 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
 
   if (style === 'classic') {
     // Long fan — flowers spread along a wide horizontal arc, tallest in the
-    // middle, with the whole fan curving slightly toward the viewer.
+    // middle, each leaning outward along the fan the further it is from
+    // center.
     for (let i = 0; i < count; i++) {
       const t = count === 1 ? 0.5 : i / (count - 1)
       const spreadAngle = (t - 0.5) * 1.7
@@ -60,13 +66,15 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
         z: -Math.cos(spreadAngle) * 0.25 + (seeded(i, 2) - 0.5) * 0.12,
         y: BASE_Y + Math.sin(t * Math.PI) * HEAD_SPAN * 0.85,
         rotationY: (spreadAngle * 180) / Math.PI,
+        tilt: Math.abs(t - 0.5) * 50,
         scale: 0.85 + Math.sin(t * Math.PI) * 0.3,
       })
     }
     return positions
   }
 
-  // freeform — organic scatter across a wider, looser cluster
+  // freeform — organic scatter across a wider, looser cluster, each head at
+  // its own loose, slightly random lean for an unstudied, natural look.
   const maxRadius = 0.85
   for (let i = 0; i < count; i++) {
     const angle = seeded(i, 1) * Math.PI * 2
@@ -76,6 +84,7 @@ export function computeAutoLayout(count: number, style: ArrangementStyleId): Aut
       z: r * Math.sin(angle) * 0.6,
       y: BASE_Y + seeded(i, 3) * HEAD_SPAN,
       rotationY: seeded(i, 4) * 360,
+      tilt: seeded(i, 6) * 30,
       scale: 0.75 + seeded(i, 5) * 0.55,
     })
   }

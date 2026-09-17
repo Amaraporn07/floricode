@@ -117,8 +117,14 @@ export const MOOD_LABELS: Record<MoodTone, string> = {
 }
 
 /** A flower placed in the 3D bouquet scene. x/z are the horizontal ground
- * plane (drag moves along these two), y is height. rotationY spins the
- * flower head around its vertical axis. Units are Three.js world units. */
+ * plane (drag moves along these two), y is height — together (x,y,z) also
+ * doubles as the stem's length and direction, since the stem always runs
+ * straight from here to the neck point at the origin: shortening this
+ * vector (scaling x/y/z down together, keeping their direction) is what
+ * "trimming the stem" means, pulling the flower down closer to the bunch.
+ * rotationY is the compass direction the flower leans/faces, and tilt is
+ * how far it leans away from standing straight up — together they let the
+ * bloom face any direction freely, not just spin flat in place. */
 export interface PlacedFlower {
   uid: string
   flowerId: string
@@ -126,5 +132,6 @@ export interface PlacedFlower {
   y: number
   z: number
   rotationY: number
+  tilt: number
   scale: number
 }
