@@ -75,9 +75,9 @@ export function useBouquet(initial?: BouquetState) {
         flowerId,
         x: pos.x,
         y: pos.y,
-        rotation: pos.rotation,
+        z: pos.z,
+        rotationY: pos.rotationY,
         scale: pos.scale,
-        z: s.placed.length,
       }
       return { ...s, placed: [...s.placed, placed] }
     })
@@ -95,13 +95,6 @@ export function useBouquet(initial?: BouquetState) {
     }))
   }, [])
 
-  const bringToFront = useCallback((uid: string) => {
-    setState((s) => {
-      const maxZ = Math.max(0, ...s.placed.map((p) => p.z))
-      return { ...s, placed: s.placed.map((p) => (p.uid === uid ? { ...p, z: maxZ + 1 } : p)) }
-    })
-  }, [])
-
   const autoArrange = useCallback((style?: ArrangementStyleId) => {
     setState((s) => {
       const useStyle = style ?? s.style
@@ -109,7 +102,7 @@ export function useBouquet(initial?: BouquetState) {
       return {
         ...s,
         style: useStyle,
-        placed: s.placed.map((p, i) => ({ ...p, x: layout[i].x, y: layout[i].y, rotation: layout[i].rotation, scale: layout[i].scale })),
+        placed: s.placed.map((p, i) => ({ ...p, x: layout[i].x, y: layout[i].y, z: layout[i].z, rotationY: layout[i].rotationY, scale: layout[i].scale })),
       }
     })
   }, [])
@@ -167,9 +160,9 @@ export function useBouquet(initial?: BouquetState) {
           flowerId,
           x: pos.x,
           y: pos.y,
-          rotation: pos.rotation,
+          z: pos.z,
+          rotationY: pos.rotationY,
           scale: pos.scale,
-          z: s.placed.length,
         }
         return { ...s, placed: [...s.placed, placed] }
       })
@@ -191,7 +184,6 @@ export function useBouquet(initial?: BouquetState) {
     addFlower,
     removeFlower,
     updateFlower,
-    bringToFront,
     autoArrange,
     setStyle,
     setWrap,

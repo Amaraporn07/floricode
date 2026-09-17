@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
-import { toPng } from 'html-to-image'
 import BlurText from '../components/BlurText'
-import Canvas from '../components/builder/Canvas'
+import BouquetScene from '../three/BouquetScene'
 import FlowerPicker from '../components/builder/FlowerPicker'
 import ArrangementControls from '../components/builder/ArrangementControls'
 import WrappingControls from '../components/builder/WrappingControls'
@@ -10,6 +9,7 @@ import ExtrasControls from '../components/builder/ExtrasControls'
 import SelectedFlowerControls from '../components/builder/SelectedFlowerControls'
 import SummaryPanel from '../components/builder/SummaryPanel'
 import DigitalCardModal from '../components/builder/DigitalCardModal'
+import { compositeMessageCard } from '../lib/compositeCard'
 import { decodeBouquet, encodeBouquet, useBouquet, type BouquetState } from '../hooks/useBouquet'
 
 function readInitialState(): BouquetState | undefined {
@@ -20,7 +20,7 @@ function readInitialState(): BouquetState | undefined {
 }
 
 export default function BuilderPage() {
-  const canvasRef = useRef<HTMLDivElement | null>(null)
+  const canvasElRef = useRef<HTMLCanvasElement | null>(null)
   const [busy, setBusy] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [cardImage, setCardImage] = useState<string | null>(null)
@@ -32,7 +32,6 @@ export default function BuilderPage() {
     addFlower,
     removeFlower,
     updateFlower,
-    bringToFront,
     setStyle,
     setWrap,
     setRibbon,
@@ -44,35 +43,22 @@ export default function BuilderPage() {
 
   const selectedItem = state.placed.find((p) => p.uid === selectedUid) ?? null
 
-  const handleMove = (uid: string, item: { x: number; y: number }, dxPx: number, dyPx: number) => {
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const dxPct = (dxPx / rect.width) * 100
-    const dyPct = (dyPx / rect.height) * 100
+  const handleMove = (uid: string, x: number, z: number) => {
     updateFlower(uid, {
-      x: Math.min(95, Math.max(5, item.x + dxPct)),
-      y: Math.min(95, Math.max(5, item.y + dyPct)),
+      x: Math.min(1.3, Math.max(-1.3, x)),
+      z: Math.min(1.3, Math.max(-1.3, z)),
     })
-    bringToFront(uid)
   }
 
   const captureCanvas = async (): Promise<string | null> => {
-    if (!canvasRef.current) return null
+    if (!canvasElRef.current) return null
     setBusy(true)
     try {
-      // html-to-image serializes the real DOM into an SVG <foreignObject> and lets
-      // the browser rasterize it, so CSS the canvas actually relies on here
-      // (clip-path cone shapes, gradients) renders correctly — unlike html2canvas,
-      // which reimplements CSS in JS and silently drops clip-path/complex gradients.
-      // The explicit width/height must match the live element exactly: the CSS
-      // `aspect-[4/5]` that sizes the canvas on screen isn't reliably picked up by
-      // the clone, so without pinning these the percentage-positioned flowers and
-      // wrap end up laid out against the wrong box and drift off-frame.
-      return await toPng(canvasRef.current, {
-        backgroundColor: '#FFF8F0',
-        pixelRatio: 2,
-        skipFonts: true,
-      })
+      // The WebGL canvas keeps its last-rendered frame because the renderer
+      // was created with preserveDrawingBuffer, so toDataURL just works —
+      // no DOM-to-image tricks needed the way the old flat 2D canvas did.
+      const raw = canvasElRef.current.toDataURL('image/png')
+      return await compositeMessageCard(raw, state.showCard ? state.message : '')
     } finally {
       setBusy(false)
     }
@@ -109,22 +95,25 @@ export default function BuilderPage() {
       <div className="mb-8 text-center">
         <BlurText text="จัดช่อดอกไม้ในแบบของคุณ" className="font-heading text-4xl text-ink sm:text-5xl" />
         <p className="mt-3 font-body text-sm text-ink/60 sm:text-base">
-          เลือกดอกไม้ ปรับตำแหน่ง ห่อกระดาษ ผูกโบว์ แล้วส่งต่อความหมายดีๆ ให้คนสำคัญ
+          เลือกดอกไม้ ปรับตำแหน่ง ห่อกระดาษ ผูกโบว์ แล้วส่งต่อความหมายดีๆ ให้คนสำคัญ — ลากเมาส์เพื่อหมุนดูช่อได้รอบทิศ
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
         <div className="lg:sticky lg:top-6 lg:self-start">
-          <Canvas
-            ref={canvasRef}
-            state={state}
-            selectedUid={selectedUid}
-            onSelect={setSelectedUid}
-            onMove={handleMove}
-            onRemove={removeFlower}
-          />
+          <div className="mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-4xl shadow-soft">
+            <BouquetScene
+              state={state}
+              selectedUid={selectedUid}
+              onSelect={setSelectedUid}
+              onMove={handleMove}
+              onCanvasReady={(canvas) => {
+                canvasElRef.current = canvas
+              }}
+            />
+          </div>
           <p className="mt-3 text-center font-body text-xs text-ink/40">
-            ลากดอกไม้เพื่อจัดตำแหน่ง แตะเพื่อเลือกแล้วปรับขนาด/องศาได้ที่แผงด้านขวา
+            ลากพื้นหลังเพื่อหมุนช่อดูรอบทิศ 360° · ลากดอกไม้เพื่อจัดตำแหน่ง · แตะดอกไม้เพื่อเลือกแล้วปรับขนาด/องศาได้ที่แผงด้านขวา
           </p>
         </div>
 

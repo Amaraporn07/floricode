@@ -34,15 +34,15 @@ export default function SelectedFlowerControls({ item, onChange, onRemove }: Sel
         <div>
           <div className="mb-1 flex justify-between font-body text-xs text-ink/60">
             <span>องศาการหมุน</span>
-            <span>{Math.round(item.rotation)}°</span>
+            <span>{Math.round(item.rotationY)}°</span>
           </div>
           <input
             type="range"
             min={-180}
             max={180}
             step={1}
-            value={item.rotation}
-            onChange={(e) => onChange({ rotation: Number(e.target.value) })}
+            value={item.rotationY}
+            onChange={(e) => onChange({ rotationY: Number(e.target.value) })}
             className="w-full accent-peach-400"
           />
         </div>

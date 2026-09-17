@@ -116,12 +116,15 @@ export const MOOD_LABELS: Record<MoodTone, string> = {
   earthy: 'เอิร์ธโทน (Earthy)',
 }
 
+/** A flower placed in the 3D bouquet scene. x/z are the horizontal ground
+ * plane (drag moves along these two), y is height. rotationY spins the
+ * flower head around its vertical axis. Units are Three.js world units. */
 export interface PlacedFlower {
   uid: string
   flowerId: string
   x: number
   y: number
-  scale: number
-  rotation: number
   z: number
+  rotationY: number
+  scale: number
 }
