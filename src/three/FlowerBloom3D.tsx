@@ -67,6 +67,50 @@ function Stem({ height, radius = 0.012 }: { height: number; radius?: number }) {
   )
 }
 
+/** A thin twig connecting two points — used to give scattered florets
+ * (gypsophila/hydrangea) a visible branching structure instead of looking
+ * like a cloud of dots with nothing holding them together. */
+function Twig({ from, to, radius = 0.004 }: { from: [number, number, number]; to: [number, number, number]; radius?: number }) {
+  const { position, quaternion, length } = useMemo(() => {
+    const a = new THREE.Vector3(...from)
+    const b = new THREE.Vector3(...to)
+    const dir = b.clone().sub(a)
+    const len = dir.length()
+    const mid = a.clone().add(b).multiplyScalar(0.5)
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize() || new THREE.Vector3(0, 1, 0))
+    return { position: mid, quaternion: quat, length: len }
+  }, [from, to])
+
+  return (
+    <mesh position={position} quaternion={quaternion}>
+      <cylinderGeometry args={[radius, radius * 1.4, length, 4]} />
+      <meshStandardMaterial color={STEM_COLOR} roughness={0.75} />
+    </mesh>
+  )
+}
+
+/** A tiny 5-point star floret (thin cone "petals" fanned from a shared
+ * center) — much cheaper than full extruded petals at this scale, and reads
+ * correctly as "small delicate flower" for gypsophila/hydrangea/hyacinth. */
+function StarFloret({ size, petalColor, centerColor }: { size: number; petalColor: string; centerColor: string }) {
+  return (
+    <group scale={size}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <group key={i} rotation={[0, (i * Math.PI * 2) / 5, 0]}>
+          <mesh rotation={[deg(68), 0, 0]}>
+            <coneGeometry args={[0.34, 1, 3]} />
+            <meshStandardMaterial color={petalColor} roughness={0.6} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, 0.08, 0]}>
+        <sphereGeometry args={[0.28, 6, 6]} />
+        <meshStandardMaterial color={centerColor} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
 // --- Rose / peony: concentric spiral rings of curled petals ---------------
 function RoseBloom({ petalColor, rings }: { petalColor: string; rings: number }) {
   const geometry = useMemo(() => teardropPetalGeometry(0.46, 0.32, 0), [])
@@ -313,55 +357,97 @@ function SpikeBloom({
   return (
     <group>
       <Stem height={0.85} radius={dense ? 0.02 : 0.012} />
-      {florets.map((f, i) => (
-        <mesh key={i} position={[f.x, f.y, f.z]} scale={f.s} castShadow>
-          <sphereGeometry args={[1, 7, 6]} />
-          <meshStandardMaterial color={petalColor} roughness={0.6} />
-        </mesh>
-      ))}
-      {dense && <Center radius={0.02} color={centerColor} y={0.02} />}
+      {florets.map((f, i) =>
+        dense ? (
+          <group key={i} position={[f.x, f.y, f.z]}>
+            <StarFloret size={f.s * 1.6} petalColor={petalColor} centerColor={centerColor} />
+          </group>
+        ) : (
+          <mesh key={i} position={[f.x, f.y, f.z]} scale={f.s} castShadow>
+            <sphereGeometry args={[1, 7, 6]} />
+            <meshStandardMaterial color={petalColor} roughness={0.6} />
+          </mesh>
+        ),
+      )}
     </group>
   )
 }
 
-// --- Cluster: a loose scattered cloud of tiny florets (no visible stem) --
-function ClusterBloom({ petalColor, count, spread, floretSize }: { petalColor: string; count: number; spread: number; floretSize: number }) {
-  return (
-    <group>
-      {Array.from({ length: count }, (_, i) => {
+// --- Cluster: a wispy, branching sprig of tiny star florets (gypsophila /
+// hydrangea) — thin twigs from a shared base tie the scattered florets
+// together into a recognizable branch instead of a floating dot-cloud.
+function ClusterBloom({
+  petalColor,
+  centerColor,
+  count,
+  spread,
+  floretSize,
+}: {
+  petalColor: string
+  centerColor: string
+  count: number
+  spread: number
+  floretSize: number
+}) {
+  const base: [number, number, number] = [0, 0.32, 0]
+  const florets = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => {
         const a = pseudoRandom(i) * Math.PI * 2
         const r = pseudoRandom(i + 50) * spread
         const h = (pseudoRandom(i + 90) - 0.3) * spread * 0.7
-        const s = floretSize * (0.7 + pseudoRandom(i + 100) * 0.6)
-        return (
-          <mesh key={i} position={[Math.cos(a) * r, 0.35 + h, Math.sin(a) * r * 0.8]} scale={s} castShadow>
-            <sphereGeometry args={[1, 6, 6]} />
-            <meshStandardMaterial color={petalColor} roughness={0.65} />
-          </mesh>
-        )
-      })}
+        const pos: [number, number, number] = [Math.cos(a) * r, 0.35 + h, Math.sin(a) * r * 0.8]
+        return { pos, s: floretSize * (0.7 + pseudoRandom(i + 100) * 0.6) }
+      }),
+    [count, spread, floretSize],
+  )
+
+  return (
+    <group>
+      <Stem height={0.32} radius={0.009} />
+      {florets.map((f, i) => (
+        <group key={i}>
+          <Twig from={base} to={f.pos} />
+          <group position={f.pos}>
+            <StarFloret size={f.s * 1.4} petalColor={petalColor} centerColor={centerColor} />
+          </group>
+        </group>
+      ))}
     </group>
   )
 }
 
-// --- Branch (eucalyptus): small flat leaves along a stem ------------------
+// --- Branch (eucalyptus): elongated leaves along a main stem plus two short
+// side branches, sizes varying along the length, for a fuller sprig than a
+// single row of identical leaves on one bare rod.
 function BranchBloom({ petalColor }: { petalColor: string }) {
-  const geometry = useMemo(() => leafGeometry(0.16, 0.09), [])
-  const leaves = 8
+  const geometry = useMemo(() => leafGeometry(0.2, 0.075), [])
+
+  const renderLeaves = (count: number, baseY: number, spacing: number, sizeScale: number, offsetX = 0) =>
+    Array.from({ length: count }, (_, i) => {
+      const y = baseY + i * spacing
+      const side = i % 2 === 0 ? 1 : -1
+      const t = i / Math.max(1, count - 1)
+      const s = sizeScale * (0.65 + Math.sin(t * Math.PI) * 0.5)
+      return (
+        <group key={`${offsetX}-${i}`} position={[offsetX, y, 0]} rotation={[0, side * deg(38), side * deg(6)]}>
+          <mesh geometry={geometry} rotation={[deg(72), 0, 0]} position={[side * 0.025, 0, 0]} scale={s} castShadow>
+            <meshStandardMaterial color={petalColor} roughness={0.6} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      )
+    })
+
   return (
     <group>
       <Stem height={0.95} radius={0.014} />
-      {Array.from({ length: leaves }, (_, i) => {
-        const y = 0.15 + i * 0.09
-        const side = i % 2 === 0 ? 1 : -1
-        return (
-          <group key={i} position={[0, y, 0]} rotation={[0, side * deg(35), 0]}>
-            <mesh geometry={geometry} rotation={[deg(70), 0, 0]} position={[side * 0.02, 0, 0]}>
-              <meshStandardMaterial color={petalColor} roughness={0.65} side={THREE.DoubleSide} />
-            </mesh>
-          </group>
-        )
-      })}
+      {renderLeaves(9, 0.14, 0.09, 1)}
+
+      {/* a short side branch for fullness, angled off the main stem */}
+      <group position={[0, 0.42, 0]} rotation={[0, 0, deg(28)]}>
+        <Stem height={0.34} radius={0.008} />
+        {renderLeaves(4, 0.08, 0.075, 0.7)}
+      </group>
     </group>
   )
 }
@@ -380,8 +466,12 @@ function DaisySprayBloom({ petalColor, centerColor }: { petalColor: string; cent
         <group key={i} position={[h.x, 0, h.z]}>
           <Stem height={h.h} radius={0.008} />
           <group position={[0, h.h, 0]} scale={h.scale}>
-            <PetalRing config={{ count: 10, tiltDeg: 58, scale: 1, attachY: 0, rotOffsetDeg: 0 }} geometry={geometry} color={petalColor} />
-            <Center radius={0.035} color={centerColor} y={0.015} />
+            <PetalRing config={{ count: 12, tiltDeg: 60, scale: 1, attachY: 0, rotOffsetDeg: 0 }} geometry={geometry} color={petalColor} />
+            {/* a raised, domed disc — the classic daisy center, not a flat sphere */}
+            <mesh position={[0, 0.008, 0]}>
+              <sphereGeometry args={[0.04, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+              <meshStandardMaterial color={centerColor} roughness={0.75} />
+            </mesh>
           </group>
         </group>
       ))}
@@ -452,7 +542,7 @@ export default function FlowerBloom3D({ shape, petalColor, centerColor, petalCou
     case 'hyacinthSpike':
       return <SpikeBloom petalColor={petalColor} centerColor={centerColor} rows={6} maxWidth={0.44} floretSize={0.05} dense />
     case 'cluster':
-      return <ClusterBloom petalColor={petalColor} count={petalCount ?? 16} spread={0.32} floretSize={0.03} />
+      return <ClusterBloom petalColor={petalColor} centerColor={centerColor} count={petalCount ?? 16} spread={0.32} floretSize={0.03} />
     case 'branch':
       return <BranchBloom petalColor={petalColor} />
     case 'daisySpray':
