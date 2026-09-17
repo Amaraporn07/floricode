@@ -104,7 +104,71 @@ function TulipBloom({ petalColor }: { petalColor: string }) {
   )
 }
 
-// --- Daisy-family: sunflower / lily / mum / sakura ------------------------
+// --- Lily: six recurved trumpet tepals in two alternating whorls, plus the
+// long protruding stamens that are the flower's most recognizable feature —
+// a flat ring of plain petals reads as "generic flower", not "lily".
+function LilyBloom({ petalColor, centerColor }: { petalColor: string; centerColor: string }) {
+  const lowerGeo = useMemo(() => teardropPetalGeometry(0.34, 0.22, 0), [])
+  const upperGeo = useMemo(() => teardropPetalGeometry(0.24, 0.15, 0), [])
+  const filamentGeo = useMemo(() => new THREE.CylinderGeometry(0.006, 0.006, 0.34, 5), [])
+  const antherGeo = useMemo(() => new THREE.BoxGeometry(0.032, 0.05, 0.016), [])
+  const tepalAngles = [0, 60, 120, 180, 240, 300]
+
+  return (
+    <group>
+      {tepalAngles.map((a, i) => {
+        const outer = i % 2 === 0
+        const baseTilt = outer ? 46 : 34
+        const recurve = outer ? 62 : 48
+        return (
+          <group key={a} rotation={[0, deg(a), 0]}>
+            {/* base segment of the tepal, then a second segment hinged at its
+                tip and rotated further back — the recurve real lily petals
+                have, rather than one flat straight petal */}
+            <group rotation={[deg(baseTilt), 0, 0]}>
+              <mesh geometry={lowerGeo} castShadow>
+                <meshStandardMaterial color={petalColor} roughness={0.4} side={THREE.DoubleSide} />
+              </mesh>
+              <group position={[0, 0.34, 0]} rotation={[deg(recurve), 0, 0]}>
+                <mesh geometry={upperGeo} castShadow>
+                  <meshStandardMaterial color={petalColor} roughness={0.4} side={THREE.DoubleSide} />
+                </mesh>
+              </group>
+            </group>
+          </group>
+        )
+      })}
+
+      {Array.from({ length: 6 }, (_, i) => {
+        const a = i * 60 + 30
+        return (
+          <group key={i} rotation={[0, deg(a), 0]}>
+            <group rotation={[deg(58), 0, 0]}>
+              <mesh geometry={filamentGeo} position={[0, 0.17, 0]}>
+                <meshStandardMaterial color="#E8D9A0" roughness={0.5} />
+              </mesh>
+              <mesh geometry={antherGeo} position={[0, 0.35, 0]} rotation={[0, 0, deg(20)]}>
+                <meshStandardMaterial color="#9A5B2E" roughness={0.6} />
+              </mesh>
+            </group>
+          </group>
+        )
+      })}
+
+      <group rotation={[deg(22), 0, 0]}>
+        <mesh geometry={filamentGeo} position={[0, 0.2, 0]} scale={[1, 1.15, 1]}>
+          <meshStandardMaterial color="#E8D9A0" roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.42, 0]}>
+          <sphereGeometry args={[0.02, 6, 6]} />
+          <meshStandardMaterial color={centerColor} roughness={0.5} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+// --- Daisy-family: sunflower / mum / sakura -------------------------------
 // A single (or lightly layered) ring of radiating petals — count, length,
 // width, notch and tilt are what give each species its own silhouette.
 function DaisyLikeBloom({
@@ -350,17 +414,7 @@ export default function FlowerBloom3D({ shape, petalColor, centerColor, petalCou
         />
       )
     case 'lily':
-      return (
-        <DaisyLikeBloom
-          petalColor={petalColor}
-          centerColor={centerColor}
-          count={petalCount ?? 6}
-          length={0.56}
-          width={0.2}
-          tiltDeg={48}
-          centerRadius={0.05}
-        />
-      )
+      return <LilyBloom petalColor={petalColor} centerColor={centerColor} />
     case 'mum':
       return (
         <DaisyLikeBloom

@@ -1,6 +1,6 @@
 export type WrapColorId = 'cream' | 'peach' | 'blush' | 'leaf' | 'lilac' | 'sky' | 'beige'
 export type WrapPatternId = 'plain' | 'craft' | 'dots' | 'stripe'
-export type WrapFoldId = 'cone' | 'straight' | 'twoTone'
+export type WrapFoldId = 'cone' | 'straight' | 'twoTone' | 'ruffled' | 'pleated'
 
 export interface WrapColorOption {
   id: WrapColorId
@@ -27,9 +27,11 @@ export const WRAP_PATTERNS: { id: WrapPatternId; label: string; className: strin
 ]
 
 export const WRAP_FOLDS: { id: WrapFoldId; label: string; description: string }[] = [
-  { id: 'cone', label: 'ห่อทรงกรวย', description: 'คลาสสิก ดูเรียบหรู' },
+  { id: 'cone', label: 'ห่อทรงกรวย', description: 'คลาสสิก ดูเรียบหรู ผิวกระดาษยับตามธรรมชาติ' },
   { id: 'straight', label: 'ห่อตรง โปร่งแสง', description: 'ดูโปร่งเบาสบายตา' },
   { id: 'twoTone', label: 'ห่อสองสีทูโทน', description: 'ตัดกันสองชั้น ดูมีมิติ' },
+  { id: 'ruffled', label: 'ห่อจีบระบาย', description: 'ขอบกระดาษจีบเป็นระลอกคลื่น ดูฟูหวาน' },
+  { id: 'pleated', label: 'ห่อพับจีบ', description: 'พับเป็นสันจีบถี่รอบช่อ ดูมีสไตล์' },
 ]
 
 export type RibbonFabricId = 'satin' | 'linen'
