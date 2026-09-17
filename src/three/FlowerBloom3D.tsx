@@ -453,19 +453,25 @@ function BranchBloom({ petalColor }: { petalColor: string }) {
 }
 
 // --- Daisy spray: a few small daisy blooms on their own thin stems -------
+// A single main stem (the one the outer bouquet stem connects to at the
+// origin) with two smaller blooms branching diagonally off it partway up —
+// like a real daisy/aster spray actually grows — instead of three separate
+// stems planted at their own disconnected spots on the ground.
 function DaisySprayBloom({ petalColor, centerColor }: { petalColor: string; centerColor: string }) {
   const geometry = useMemo(() => teardropPetalGeometry(0.22, 0.09, 0), [])
-  const heads = [
-    { x: 0, z: 0, h: 0.55, scale: 1 },
-    { x: -0.16, z: 0.05, h: 0.32, scale: 0.72 },
-    { x: 0.15, z: -0.04, h: 0.4, scale: 0.65 },
+  const mainHeight = 0.58
+  const heads: { pos: [number, number, number]; scale: number; branchFrom?: number }[] = [
+    { pos: [0, mainHeight, 0], scale: 1 },
+    { pos: [-0.18, 0.44, 0.06], scale: 0.7, branchFrom: 0.3 },
+    { pos: [0.16, 0.52, -0.05], scale: 0.62, branchFrom: 0.4 },
   ]
   return (
     <group>
+      <Stem height={mainHeight} radius={0.009} />
       {heads.map((h, i) => (
-        <group key={i} position={[h.x, 0, h.z]}>
-          <Stem height={h.h} radius={0.008} />
-          <group position={[0, h.h, 0]} scale={h.scale}>
+        <group key={i}>
+          {h.branchFrom !== undefined && <Twig from={[0, h.branchFrom, 0]} to={h.pos} radius={0.005} />}
+          <group position={h.pos} scale={h.scale}>
             <PetalRing config={{ count: 12, tiltDeg: 60, scale: 1, attachY: 0, rotOffsetDeg: 0 }} geometry={geometry} color={petalColor} />
             {/* a raised, domed disc — the classic daisy center, not a flat sphere */}
             <mesh position={[0, 0.008, 0]}>
